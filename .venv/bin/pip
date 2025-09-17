@@ -1,4 +1,4 @@
-#!/Users/steevie./Documents/PersonalProjects/outlook_drafter/.venv/bin/python3.11
+#!/home/jurmain/Downloads/ai_financial_chair_assistant/.venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
