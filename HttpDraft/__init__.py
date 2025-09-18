@@ -3,7 +3,82 @@ from pathlib import Path
 import azure.functions as func
 from importlib.metadata import version, PackageNotFoundError
 
+# Add this at the very top of your HttpDraft/__init__.py file
+import subprocess
+import sys
+import os
+import logging
 
+# Set up logging first
+log = logging.getLogger("PackageInstaller")
+if not logging.getLogger().handlers:
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+
+def install_package(package):
+    """Force install package using pip"""
+    try:
+        log.info(f"Force installing {package}...")
+        result = subprocess.run([
+            sys.executable, '-m', 'pip', 'install', 
+            '--upgrade', '--force-reinstall', '--no-cache-dir', 
+            '--target', '/home/site/wwwroot/.python_packages/lib/site-packages',
+            package
+        ], capture_output=True, text=True, timeout=300)
+        
+        if result.returncode == 0:
+            log.info(f"Successfully installed {package}")
+            return True
+        else:
+            log.error(f"Failed to install {package}: {result.stderr}")
+            return False
+    except Exception as e:
+        log.error(f"Exception installing {package}: {e}")
+        return False
+
+def ensure_packages():
+    """Ensure required packages are installed"""
+    # Add custom package path to Python path
+    custom_path = '/home/site/wwwroot/.python_packages/lib/site-packages'
+    if custom_path not in sys.path:
+        sys.path.insert(0, custom_path)
+    
+    required_packages = [
+        'openai>=1.40.0',
+        'langchain-openai>=0.2.10',
+        'langchain-community>=0.3.7',
+        'langchain>=0.3.27',
+        'faiss-cpu'
+    ]
+    
+    for package in required_packages:
+        try:
+            # Try to import to see if it's already available
+            if package.startswith('openai'):
+                import openai
+            elif package.startswith('langchain-openai'):
+                import langchain_openai
+            elif package.startswith('langchain-community'):
+                import langchain_community
+            elif package.startswith('langchain'):
+                import langchain
+            elif package.startswith('faiss'):
+                import faiss
+            log.info(f"Package {package.split('>=')[0]} already available")
+        except ImportError:
+            log.info(f"Package {package.split('>=')[0]} not found, installing...")
+            install_package(package)
+
+# Run package installation check at module level
+log.info("Checking and installing required packages...")
+ensure_packages()
+
+# Now continue with your regular imports
+import json, csv, time
+from pathlib import Path
+import azure.functions as func
+from importlib.metadata import version, PackageNotFoundError
+
+# Rest of your code continues here...
 
 
 
