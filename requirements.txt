@@ -33,4 +33,6 @@ Werkzeug==3.1.3
 zstandard==0.25.0
 fastapi
 faiss-cpu
-langchain_openai
+azure-functions
+langchain-openai
+langchain-community
