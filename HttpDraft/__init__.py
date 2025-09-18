@@ -1,6 +1,16 @@
 import logging, os, json, csv, time
 import azure.functions as func
 from pathlib import Path
+import logging
+log = logging.getLogger("HttpDraft")   # create a module-level logger
+log.setLevel(logging.INFO)             # optional; Functions will capture INFO+
+
+from importlib.metadata import version, PackageNotFoundError
+def pv(n): 
+    try: return version(n)
+    except PackageNotFoundError: return "NOT INSTALLED"
+log.info(f"pkgs -> langchain={pv('langchain')}, langchain-openai={pv('langchain-openai')}, openai={pv('openai')}, faiss-cpu={pv('faiss-cpu')}")
+
 
 # Optional: tighten log format a bit (Functions will still route to App Insights)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")

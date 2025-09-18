@@ -34,7 +34,7 @@ zstandard==0.25.0
 fastapi
 faiss-cpu
 azure-functions
-langchain-openai
-langchain-community
+langchain-openai>=0.2.10
+langchain-community>=0.3.7
 openai>=1.40.0
 
