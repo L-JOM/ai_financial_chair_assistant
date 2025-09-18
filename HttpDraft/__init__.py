@@ -3,6 +3,7 @@ from pathlib import Path
 import azure.functions as func
 from importlib.metadata import version, PackageNotFoundError
 
+
 # ---------- logging ----------
 log = logging.getLogger("HttpDraft")
 if not logging.getLogger().handlers:
@@ -19,6 +20,9 @@ log.info(
     "pkgs -> langchain=%s, langchain-openai=%s, openai=%s, faiss-cpu=%s",
     pv("langchain"), pv("langchain-openai"), pv("openai"), pv("faiss-cpu")
 )
+
+log.info("Available packages: langchain-openai=%s, openai=%s", pv("langchain-openai"), pv("openai"))
+
 
 # ---------- paths ----------
 BASE_DIR = Path(__file__).resolve().parent.parent  # repo root when deployed
