@@ -36,3 +36,5 @@ faiss-cpu
 azure-functions
 langchain-openai
 langchain-community
+openai>=1.40.0
+
