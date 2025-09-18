@@ -4,11 +4,16 @@ import azure.functions as func
 from importlib.metadata import version, PackageNotFoundError
 
 
+
+
+
 # ---------- logging ----------
 log = logging.getLogger("HttpDraft")
 if not logging.getLogger().handlers:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log.setLevel(logging.INFO)
+
+
 
 def pv(n: str) -> str:
     try:
