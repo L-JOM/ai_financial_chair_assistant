@@ -1,5 +1,6 @@
-openai==1.40.0
-langchain-openai==0.2.10
-langchain==0.3.27
-langchain-core==0.3.76
+openai>=1.54.0
+langchain-openai>=0.2.10
+langchain>=0.3.27
+langchain-core>=0.3.76
+langchain-community>=0.3.7
 azure-functions
