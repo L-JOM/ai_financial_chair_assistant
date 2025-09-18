@@ -6,10 +6,16 @@ log = logging.getLogger("HttpDraft")   # create a module-level logger
 log.setLevel(logging.INFO)             # optional; Functions will capture INFO+
 
 from importlib.metadata import version, PackageNotFoundError
-def pv(n): 
-    try: return version(n)
-    except PackageNotFoundError: return "NOT INSTALLED"
-log.info(f"pkgs -> langchain={pv('langchain')}, langchain-openai={pv('langchain-openai')}, openai={pv('openai')}, faiss-cpu={pv('faiss-cpu')}")
+def pv(n):
+    try:
+        return version(n)
+    except PackageNotFoundError:
+        return "NOT INSTALLED"
+
+log.info(
+    "pkgs -> langchain=%s, langchain-openai=%s, openai=%s, faiss-cpu=%s",
+    pv("langchain"), pv("langchain-openai"), pv("openai"), pv("faiss-cpu")
+)
 
 
 # Optional: tighten log format a bit (Functions will still route to App Insights)
@@ -145,12 +151,13 @@ Return ONLY the email text.
             log.error(f"[{inv}] OPENAI_API_KEY missing")
             return _json_response({"error": "missing_openai_api_key"}, 500)
 
-        t0 = time.time()
-        if ChatOpenAI is None:
-            log.error(f"[{inv}] langchain-openai not installed")
-            return _json_response({"error": "missing_dependency", "detail": "langchain-openai not installed"}, 500)
+        log.info(api_key)
+        log.info(model)
 
         llm = ChatOpenAI(openai_api_key=api_key, model=model, temperature=0.3)
+        
+
+
         reply_text = llm.invoke(prompt).content.strip()
         log.info(f"[{inv}] LLM call ok in {time.time()-t0:.2f}s")
 
