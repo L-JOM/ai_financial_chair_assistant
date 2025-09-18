@@ -1,6 +1,5 @@
-
-logging==0.4.9.6
-openai
-langchain-openai>=0.2.10
+openai==1.40.0
+langchain-openai==0.2.10
+langchain==0.3.27
+langchain-core==0.3.76
 azure-functions
-langchain
