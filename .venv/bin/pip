@@ -1,4 +1,4 @@
-#!/home/jurmain/Downloads/ai_financial_chair_assistant/.venv/bin/python
+#!/Users/steevie./Documents/PersonalProjects/ai_financial_chair_assistant/.venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
