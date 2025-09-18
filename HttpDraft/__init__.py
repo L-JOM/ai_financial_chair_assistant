@@ -21,6 +21,7 @@ def _safe_imports():
         log.exception("Dependency import failed")
         return None, None, None, None
 
+
 ChatOpenAI, OpenAIEmbeddings, FAISS, Document = _safe_imports()
 
 # ----- Build vector store (tolerant & logged)
@@ -135,6 +136,10 @@ Return ONLY the email text.
             return _json_response({"error": "missing_openai_api_key"}, 500)
 
         t0 = time.time()
+        if ChatOpenAI is None:
+            log.error(f"[{inv}] langchain-openai not installed")
+            return _json_response({"error": "missing_dependency", "detail": "langchain-openai not installed"}, 500)
+
         llm = ChatOpenAI(openai_api_key=api_key, model=model, temperature=0.3)
         reply_text = llm.invoke(prompt).content.strip()
         log.info(f"[{inv}] LLM call ok in {time.time()-t0:.2f}s")
