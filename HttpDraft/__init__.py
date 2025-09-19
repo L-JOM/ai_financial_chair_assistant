@@ -30,8 +30,8 @@ log.info("Available packages: langchain-openai=%s, openai=%s", pv("langchain-ope
 
 
 # ---------- paths ----------
-BASE_DIR = Path(__file__).resolve().parent.parent  # repo root when deployed
-CSV_PATH = Path(os.getenv("CSV_PATH", str(BASE_DIR / "src" / "emails.csv")))
+#BASE_DIR = Path(__file__).resolve().parent.parent  # repo root when deployed
+#CSV_PATH = Path(os.getenv("CSV_PATH", str(BASE_DIR / "src" / "emails.csv")))
 
 # ---------- helpers ----------
 def _json_response(payload: dict, status: int = 200) -> func.HttpResponse:
@@ -75,24 +75,18 @@ def build_db():
 
 
 def read_csv_from_blob():
-    """
-    Reads emails.csv directly from Azure Blob Storage using Managed Identity.
-    Returns a list of dict rows.
-    """
     if not CSV_BLOB_URL:
         log.error("CSV_BLOB_URL is not set")
         return []
-
     try:
         cred = DefaultAzureCredential(exclude_interactive_browser_credential=True)
         blob = BlobClient.from_blob_url(CSV_BLOB_URL, credential=cred)
-
         stream = blob.download_blob()
         content = stream.readall().decode("utf-8").splitlines()
-
         reader = csv.DictReader(content)
-        return list(reader)
-
+        rows = list(reader)
+        log.info("Blob CSV: headers=%s rows=%d", reader.fieldnames, len(rows))
+        return rows
     except Exception as e:
         log.exception("Failed to read CSV from blob: %s", e)
         return []
@@ -116,21 +110,23 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     log.info("[%s] Input lens - sender:%d subject:%d body:%d", inv, len(sender), len(subject), len(body))
 
     # Retrieve examples
+    # Retrieve examples (build vector store per request)
     examples = ""
     try:
-        if DB and body:
+        vs = build_db()  # build from blob each time
+        if vs and body:
             t0 = time.time()
-            docs = DB.similarity_search(body, k=3)
+            docs = vs.similarity_search(body, k=3)
             dt = time.time() - t0
             examples = "\n\n".join(
                 f"Email: {d.page_content}\nReply: {d.metadata.get('reply','')}" for d in docs
             )
             log.info("[%s] Retrieved %d examples in %.3fs", inv, len(docs), dt)
         else:
-            if not DB:
-                log.info("[%s] No DB available; skipping retrieval.", inv)
+            log.info("[%s] No vector store available; skipping retrieval.", inv)
     except Exception:
         log.exception("[%s] Retrieval failed (continuing without examples)", inv)
+
 
     # Build prompt
     prompt = f"""
