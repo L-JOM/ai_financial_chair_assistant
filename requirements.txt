@@ -6,3 +6,4 @@ langchain-community>=0.3.7
 azure-functions
 azure-storage-blob==12.23.1
 azure-identity==1.17.1
+faiss-cpu
