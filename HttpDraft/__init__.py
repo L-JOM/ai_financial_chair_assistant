@@ -144,11 +144,20 @@ IMPORTANT: Study Jurmain's writing style, tone, and availability patterns, and t
 - Copy his phrasing patterns 
 - Use similar availability times and days that he typically mentions
 - Match his informal but professional tone, 
-- Keep it brief and casual like your previous example replies
+- Keep it casual like the previous example replies
 - Use his previous answers in the examples to respond to the emails, but cater to the sender and subject.
-Write a reply that sounds  like Jurmain wrote it himself.
-Return ONLY the email text.
+
+Write a reply that sounds like Jurmain wrote it himself.
+
+ALWAYS end the email with this EXACT signature format:
+
+Best regards,
+Jurmain Mitchell
+Finance Chair, Region 3 NSBE
+
+Return ONLY the email text including the signature.
 """.strip()
+
 
     # Call LLM (lazy import; fallback to OpenAI SDK)
     api_key = os.getenv("OPENAI_API_KEY")
