@@ -143,7 +143,8 @@ Here are Jurmain's past replies to similar emails:
 IMPORTANT: Study Jurmain's writing style, tone, and availability patterns, and the context of his replies from the examples above. 
 - Copy his phrasing patterns 
 - Use similar availability times and days that he typically mentions
-- Match his informal but professional tone
+- Match his informal but professional tone, 
+- Keep it brief and casual like your previous example replies
 - Use his previous answers in the examples to respond to the emails, but cater to the sender and subject.
 Write a reply that sounds  like Jurmain wrote it himself.
 Return ONLY the email text.
