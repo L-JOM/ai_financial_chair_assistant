@@ -131,7 +131,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     prompt = f"""
 You are drafting an email reply on behalf of Jurmain Mitchell (Finance Chair, Region 3 NSBE).
 You are an assistant of Jurmain drafting professional emails for NSBE corporate relations.
-
+FRC (Fall Regional Conference) is a regional event hosted by NSBE that brings together members for professional development, networking, and leadership training in preparation for national conferences. NSBE’s mission is to increase the number of culturally responsible Black engineers who excel academically, succeed professionally, and positively impact the community.
 The user received an email from {sender} with subject: "{subject}".
 
 New Email:
