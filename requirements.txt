@@ -4,3 +4,5 @@ langchain>=0.3.27
 langchain-core>=0.3.76
 langchain-community>=0.3.7
 azure-functions
+azure-storage-blob==12.23.1
+azure-identity==1.17.1
