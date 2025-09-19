@@ -2,8 +2,6 @@ import os, json, csv, time, logging
 from pathlib import Path
 import azure.functions as func
 from importlib.metadata import version, PackageNotFoundError
-from azure.storage.blob import BlobClient
-from azure.identity import DefaultAzureCredential
 
 
 
@@ -74,22 +72,23 @@ def build_db():
         return None
 
 
+import urllib.request
+
 def read_csv_from_blob():
     if not CSV_BLOB_URL:
         log.error("CSV_BLOB_URL is not set")
         return []
     try:
-        cred = DefaultAzureCredential(exclude_interactive_browser_credential=True)
-        blob = BlobClient.from_blob_url(CSV_BLOB_URL, credential=cred)
-        stream = blob.download_blob()
-        content = stream.readall().decode("utf-8").splitlines()
-        reader = csv.DictReader(content)
-        rows = list(reader)
-        log.info("Blob CSV: headers=%s rows=%d", reader.fieldnames, len(rows))
-        return rows
+        with urllib.request.urlopen(CSV_BLOB_URL) as response:
+            content = response.read().decode("utf-8").splitlines()
+            reader = csv.DictReader(content)
+            rows = list(reader)
+            log.info("Blob CSV: headers=%s rows=%d", reader.fieldnames, len(rows))
+            return rows
     except Exception as e:
         log.exception("Failed to read CSV from blob: %s", e)
         return []
+
 
 
 # ---------- function entry ----------
