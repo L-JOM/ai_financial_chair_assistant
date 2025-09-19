@@ -2,7 +2,8 @@ import os, json, csv, time, logging
 from pathlib import Path
 import azure.functions as func
 from importlib.metadata import version, PackageNotFoundError
-
+from azure.storage.blob import BlobClient
+from azure.identity import DefaultAzureCredential
 
 
 
@@ -12,7 +13,7 @@ if not logging.getLogger().handlers:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log.setLevel(logging.INFO)
 
-
+CSV_BLOB_URL = os.getenv("CSV_BLOB_URL")  # already set in Function App settings
 
 def pv(n: str) -> str:
     try:
@@ -36,66 +37,66 @@ CSV_PATH = Path(os.getenv("CSV_PATH", str(BASE_DIR / "src" / "emails.csv")))
 def _json_response(payload: dict, status: int = 200) -> func.HttpResponse:
     return func.HttpResponse(json.dumps(payload), mimetype="application/json", status_code=status)
 
-def build_db(path: Path = CSV_PATH):
-    """
-    Build a FAISS vector store from CSV. Tolerant:
-    - If CSV missing/empty or deps not installed, returns None and logs why.
-    - Expects headers: sender, subject, body (incoming), your_reply (outgoing)
-    """
-    log.info("CSV_PATH resolved: %s exists=%s", path, path.exists())
-    if not path.exists():
-        log.warning("emails.csv not found; continuing without examples.")
+def build_db():
+    rows = []
+    data = read_csv_from_blob()
+    if not data:
+        log.warning("No rows found in blob CSV")
         return None
 
-    # Lazy-import retrieval deps so missing packages don't crash the app
     try:
         from langchain_openai import OpenAIEmbeddings
         from langchain_community.vectorstores import FAISS
         from langchain.schema import Document
-    except Exception:
-        log.exception("Retrieval dependencies not importable; retrieval disabled.")
-        return None
 
-    # Read CSV
-    rows = []
-    try:
-        with open(path, newline="", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            headers = reader.fieldnames or []
-            log.info("CSV headers: %s", headers)
+        for r in data:
+            body_in = (r.get("body (incoming)") or "").strip()
+            if not body_in:
+                continue
+            sender = (r.get("sender") or "").strip()
+            subject = (r.get("subject") or "").strip()
+            reply_out = (r.get("your_reply (outgoing)") or "").strip()
+            content = f"From: {sender}\nSubject: {subject}\nBody: {body_in}"
+            rows.append(Document(page_content=content, metadata={"reply": reply_out}))
 
-            for r in reader:
-                body_in = (r.get("body (incoming)") or "").strip()
-                if not body_in:
-                    continue
-                sender = (r.get("sender") or "").strip()
-                subject = (r.get("subject") or "").strip()
-                reply_out = (r.get("your_reply (outgoing)") or "").strip()
-                content = f"From: {sender}\nSubject: {subject}\nBody: {body_in}"
-                rows.append(Document(page_content=content, metadata={"reply": reply_out}))
-    except Exception:
-        log.exception("Failed reading CSV")
-        return None
+        if not rows:
+            log.warning("Blob CSV had no usable rows")
+            return None
 
-    if not rows:
-        log.warning("emails.csv had no usable rows; retrieval disabled.")
-        return None
-
-    # Build embeddings + FAISS
-    try:
         api_key = os.getenv("OPENAI_API_KEY")
-        if not api_key:
-            log.warning("OPENAI_API_KEY not set; retrieval/LLM may fail.")
         emb = OpenAIEmbeddings(openai_api_key=api_key, model="text-embedding-3-small")
-        t0 = time.time()
         vs = FAISS.from_documents(rows, emb)
-        log.info("FAISS built with %d rows in %.2fs", len(rows), time.time() - t0)
+        log.info("FAISS built with %d rows", len(rows))
         return vs
+
     except Exception:
-        log.exception("Failed to build FAISS; retrieval disabled.")
+        log.exception("Failed to build FAISS from blob CSV")
         return None
 
-DB = build_db()
+
+def read_csv_from_blob():
+    """
+    Reads emails.csv directly from Azure Blob Storage using Managed Identity.
+    Returns a list of dict rows.
+    """
+    if not CSV_BLOB_URL:
+        log.error("CSV_BLOB_URL is not set")
+        return []
+
+    try:
+        cred = DefaultAzureCredential(exclude_interactive_browser_credential=True)
+        blob = BlobClient.from_blob_url(CSV_BLOB_URL, credential=cred)
+
+        stream = blob.download_blob()
+        content = stream.readall().decode("utf-8").splitlines()
+
+        reader = csv.DictReader(content)
+        return list(reader)
+
+    except Exception as e:
+        log.exception("Failed to read CSV from blob: %s", e)
+        return []
+
 
 # ---------- function entry ----------
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
