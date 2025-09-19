@@ -131,15 +131,21 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     prompt = f"""
 You are drafting an email reply on behalf of Jurmain Mitchell (Finance Chair, Region 3 NSBE).
 You are an assistant of Jurmain drafting professional emails for NSBE corporate relations.
+
 The user received an email from {sender} with subject: "{subject}".
 
 New Email:
 {body}
 
-Here are Jurmain's past replies to emails like these:
+Here are Jurmain's past replies to similar emails:
 {examples}
 
-Write a reply to the new email that is consistent with Jurmain’s style of writing.
+IMPORTANT: Study Jurmain's writing style, tone, and availability patterns, and the context of his replies from the examples above. 
+- Copy his phrasing patterns 
+- Use similar availability times and days that he typically mentions
+- Match his informal but professional tone
+- Use his previous answers in the examples to respond to the emails, but cater to the sender and subject.
+Write a reply that sounds  like Jurmain wrote it himself.
 Return ONLY the email text.
 """.strip()
 
